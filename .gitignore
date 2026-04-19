@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Output
+output/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Models cache
+*.pt
+*.bin
+*.onnx
+
+# Audio temp
+*.tmp

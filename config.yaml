@@ -1,0 +1,150 @@
+# ============================================================
+# 声沫 (ShengMo) ASR 配置文件
+# ============================================================
+
+# -------------------- 引擎配置 --------------------
+engine:
+  # 引擎模型: 16k_zh(中文), 16k_en(英文), 16k_zh-PY(中英粤, 一句话识别用)
+  model_type: "16k_zh-PY"
+  # 音频格式: wav, mp3, m4a, pcm, ogg-opus, silk, speex, aac, amr
+  voice_format: "wav"
+  # 采样率: 16000 (推荐) 或 8000
+  sample_rate: 16000
+
+# -------------------- 说话人分离 --------------------
+speaker_diarization:
+  # 是否启用说话人分离
+  enabled: true
+  # 后端: "pyannote" (本地, 更精确) 或 "tencent" (云端, 更简单)
+  backend: "pyannote"
+  # pyannote 模型 (仅 backend=pyannote 时生效)
+  pyannote_model: "pyannote/speaker-diarization-3.1"
+  # 最大说话人数量 (0=自动检测)
+  max_speakers: 0
+  # 最小说话人数量
+  min_speakers: 1
+
+# -------------------- 声纹过滤（只保留我的声音） --------------------
+voiceprint:
+  # 是否启用声纹过滤
+  enabled: true
+  # 我的声纹注册音频路径 (用于声纹比对)
+  my_voice_samples:
+    - "voiceprints/my_voice_sample_1.wav"
+    - "voiceprints/my_voice_sample_2.wav"
+  # 相似度阈值 (0-1, 越高越严格, 推荐 0.75-0.85)
+  similarity_threshold: 0.78
+
+# -------------------- 热词配置 --------------------
+hotwords:
+  # 是否启用热词
+  enabled: true
+  # 预设热词表 ID (在腾讯云控制台创建)
+  hotword_id: ""
+  # 临时热词列表: "词|权重" 格式, 权重 1-11, 11 为超级热词
+  # 超级热词识别准确率极高, 但不宜设置太多
+  words:
+    - word: "DeepSeek"
+      weight: 100
+    - word: "Harness"
+      weight: 100
+    - word: "Kubernetes"
+      weight: 100
+    - word: "Docker"
+      weight: 10
+    - word: "PyTorch"
+      weight: 10
+    - word: "TensorFlow"
+      weight: 10
+    - word: "GitHub"
+      weight: 10
+    - word: "Copilot"
+      weight: 10
+    - word: "CodeBuddy"
+      weight: 100
+    - word: "LangChain"
+      weight: 10
+
+# -------------------- 语气词/停顿词过滤 --------------------
+filler_filter:
+  # 是否启用语气词过滤
+  enabled: true
+  # 腾讯云 FilterModal 等级: 0=不过滤, 1=部分过滤, 2=严格过滤
+  cloud_filter_level: 2
+  # 本地补充过滤的语气词 (正则模式)
+  local_patterns:
+    - "那个"
+    - "就是说"
+    - "然后呢"
+    - "嗯+"
+    - "啊+"
+    - "呃+"
+    - "额+"
+    - "哦+"
+    - "嘛"
+    - "吧"
+    - "呢"
+    - "哈"
+    - "唉"
+    - "哎"
+    - "对对对"
+    - "是是是"
+    - "好好好"
+
+# -------------------- 口误/反悔纠正 --------------------
+correction:
+  # 是否启用口误纠正
+  enabled: true
+  # 腾讯云口语转书面语 (ResTextFormat=5, 仅录音文件识别支持, 一句话识别不支持)
+  use_cloud_oral2written: false
+  # 是否使用 LLM 进行二次润色
+  use_llm_polish: false
+  # LLM 润色的 prompt 模板
+  llm_prompt: |
+    你是一个语音转文字的后处理助手。请对以下语音识别结果进行纠正和润色：
+    1. 删除重复表达和反悔内容（说话人改口的情况，保留修正后的内容）
+    2. 修正明显的同音错别字
+    3. 保持原意不变，不要添加或删除实质内容
+    4. 保持口语化风格，不要过度书面化
+
+    识别原文：
+    {text}
+
+    纠正后的文本：
+
+# -------------------- 发音纠正 --------------------
+pronunciation_fix:
+  # 是否启用发音纠正
+  enabled: true
+  # 自定义替换词表 (谐音/发音错误 → 正确)
+  replacements:
+    # 平翘舌混淆
+    "只持": "支持"
+    "是线": "实现"
+    "生么": "什么"
+    "住要": "主要"
+    "处存": "存储"
+    "司考": "思考"
+    "成功人仕": "成功人士"
+    # 前后鼻音混淆
+    "经长": "经常"
+    "平台": "平台"
+    "陈功": "成功"
+    "认证": "认证"
+    # 技术术语常见错误
+    "模形": "模型"
+    "权总": "权重"
+    "参束": "参数"
+  # 腾讯云替换词表 ID
+  replace_text_id: ""
+
+# -------------------- 输出配置 --------------------
+output:
+  # 输出格式: "text", "srt", "json", "markdown"
+  format: "markdown"
+  # 是否包含时间戳
+  include_timestamps: true
+  # 是否包含说话人标签
+  include_speaker_labels: true
+  # 输出目录
+  output_dir: "output"
