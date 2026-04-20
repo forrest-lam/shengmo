@@ -1,5 +1,5 @@
 """
-声沫 (ShengMo) 核心 Pipeline
+声墨 (ShengMo) 核心 Pipeline
 将音频预处理、ASR 识别、文本后处理串联为完整流水线
 """
 
@@ -34,7 +34,7 @@ class PipelineResult:
 
 class ShengMoPipeline:
     """
-    声沫 ASR Pipeline
+    声墨 ASR Pipeline
 
     处理流程:
     1. 音频标准化 (格式/采样率/声道)

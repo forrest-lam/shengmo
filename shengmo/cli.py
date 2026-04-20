@@ -1,5 +1,5 @@
 """
-声沫 (ShengMo) CLI 入口
+声墨 (ShengMo) CLI 入口
 """
 
 import sys
@@ -31,7 +31,7 @@ def setup_logging(verbose: bool = False):
 @click.group()
 @click.version_option(version="0.1.0", prog_name="shengmo")
 def cli():
-    """🎙️ 声沫 (ShengMo) - 智能语音识别工具"""
+    """🎙️ 声墨 (ShengMo) - 智能语音识别工具"""
     pass
 
 
@@ -77,7 +77,7 @@ def transcribe(audio_path, config_path, output_path, output_format,
 
     # 运行 Pipeline
     console.print(Panel.fit(
-        f"🎙️ [bold]声沫 ASR[/bold]\n"
+        f"🎙️ [bold]声墨 ASR[/bold]\n"
         f"📁 音频: {audio_path}\n"
         f"👤 只保留我的声音: {'是' if only_me else '否'}\n"
         f"📝 输出格式: {config.output.format}",
@@ -155,7 +155,7 @@ def show_config(config_path):
     """显示当前配置"""
     config = load_config(config_path)
 
-    table = Table(title="声沫配置")
+    table = Table(title="声墨配置")
     table.add_column("配置项", style="cyan")
     table.add_column("值", style="green")
 

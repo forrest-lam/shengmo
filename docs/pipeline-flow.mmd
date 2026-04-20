@@ -1,0 +1,44 @@
+---
+title: 🎙️ 声墨 (ShengMo) ASR Pipeline
+---
+graph TD
+    subgraph Step1 ["Step 1: 音频标准化"]
+        A1["任意格式音频<br/>mp3/m4a/ogg/..."] --> A2["pydub + soundfile<br/>→ 16kHz / 单声道 / WAV"]
+    end
+
+    subgraph Step2 ["Step 2: 说话人分离 (Speaker Diarization)"]
+        B1["pyannote.audio<br/>pyannote/speaker-diarization-3.1"]
+        B2["输出 SpeakerSegment 列表<br/>合并间隔 &lt; 0.5s 的同一说话人片段"]
+        B1 --> B2
+    end
+
+    subgraph Step3 ["Step 3: 声纹匹配过滤"]
+        C1["resemblyzer<br/>VoiceEncoder"]
+        C2["余弦相似度 ≥ 0.78<br/>→ 标记 is_me"]
+        C3["只保留「我」的片段"]
+        C1 --> C2 --> C3
+    end
+
+    subgraph Step4 ["Step 4: ASR 语音识别 (腾讯云)"]
+        D1["一句话识别<br/>SentenceRecognition<br/>≤ 60s, 超长自动切分"]
+        D2["引擎: 16k_zh-PY<br/>热词: HotwordList<br/>语气词过滤: FilterModal=2<br/>词级别时间戳: WordInfo=2"]
+        D1 --- D2
+    end
+
+    subgraph Step5 ["Step 5: 文本后处理"]
+        E1["① 热词纠正"]
+        E2["② 发音纠正"]
+        E3["③ 语气词过滤"]
+        E4["④ 口误纠正"]
+        E5["⑤ LLM 润色 (可选)"]
+        E1 --> E2 --> E3 --> E4 --> E5
+    end
+
+    subgraph Step6 ["Step 6: 格式化输出"]
+        F1["Markdown"]
+        F2["Text"]
+        F3["SRT 字幕"]
+        F4["JSON"]
+    end
+
+    Step1 --> Step2 --> Step3 --> Step4 --> Step5 --> Step6
