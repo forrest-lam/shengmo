@@ -7,12 +7,14 @@
 
 import io
 import logging
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from dataclasses import dataclass
 
 import numpy as np
 import soundfile as sf
-from pydub import AudioSegment
 
 from .config import ShengMoConfig
 
@@ -48,26 +50,40 @@ class AudioPreprocessor:
     def normalize_audio(self, audio_path: str) -> tuple[np.ndarray, int]:
         """
         标准化音频：转为 16kHz 单声道 WAV
+        使用 ffmpeg subprocess 直接转换，无需 ffprobe。
         """
-        audio = AudioSegment.from_file(audio_path)
-
-        # 转为单声道
-        if audio.channels > 1:
-            audio = audio.set_channels(1)
-
-        # 重采样到目标采样率
         target_sr = self.config.engine.sample_rate
-        if audio.frame_rate != target_sr:
-            audio = audio.set_frame_rate(target_sr)
 
-        # 转为 16bit
-        audio = audio.set_sample_width(2)
+        # 查找 ffmpeg 二进制
+        ffmpeg_bin = shutil.which("ffmpeg")
+        if ffmpeg_bin is None:
+            # 尝试 imageio_ffmpeg 附带的二进制
+            try:
+                import imageio_ffmpeg
+                ffmpeg_bin = imageio_ffmpeg.get_ffmpeg_exe()
+            except ImportError:
+                raise RuntimeError("找不到 ffmpeg，请先安装 ffmpeg")
 
-        # 转为 numpy array
-        buf = io.BytesIO()
-        audio.export(buf, format="wav")
-        buf.seek(0)
-        data, sr = sf.read(buf, dtype="float32")
+        # 使用 ffmpeg 直接转换为 16kHz 单声道 16bit WAV
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            tmp_path = tmp.name
+
+        try:
+            cmd = [
+                ffmpeg_bin, "-y", "-i", str(audio_path),
+                "-f", "wav", "-acodec", "pcm_s16le",
+                "-ar", str(target_sr), "-ac", "1",
+                tmp_path,
+            ]
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=60
+            )
+            if result.returncode != 0:
+                raise RuntimeError(f"ffmpeg 转换失败: {result.stderr[-500:]}")
+
+            data, sr = sf.read(tmp_path, dtype="float32")
+        finally:
+            Path(tmp_path).unlink(missing_ok=True)
 
         logger.info(f"音频标准化完成: {len(data)/sr:.1f}s, {sr}Hz, mono")
         return data, sr
